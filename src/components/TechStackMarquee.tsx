@@ -63,8 +63,8 @@ const TechStackMarquee = () => {
 
         {/* Row 1 - left */}
         <div className="relative mb-4">
-          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-background to-transparent z-10" />
-          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-10" />
+          <div className="absolute left-0 top-0 bottom-0 w-40 md:w-64 bg-gradient-to-r from-background via-background/80 to-transparent z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-40 md:w-64 bg-gradient-to-l from-background via-background/80 to-transparent z-10" />
           <div className="flex marquee-left">
             {[...row1, ...row1].map((tech, i) => (
               <TechIcon key={`r1-${i}`} name={tech} />
@@ -74,8 +74,8 @@ const TechStackMarquee = () => {
 
         {/* Row 2 - right */}
         <div className="relative">
-          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-background to-transparent z-10" />
-          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-10" />
+          <div className="absolute left-0 top-0 bottom-0 w-40 md:w-64 bg-gradient-to-r from-background via-background/80 to-transparent z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-40 md:w-64 bg-gradient-to-l from-background via-background/80 to-transparent z-10" />
           <div className="flex marquee-right">
             {[...row2, ...row2].map((tech, i) => (
               <TechIcon key={`r2-${i}`} name={tech} />
