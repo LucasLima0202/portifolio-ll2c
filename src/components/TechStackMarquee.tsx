@@ -28,8 +28,8 @@ const techIcons: Record<string, string> = {
 };
 
 const techs = siteContent.technologies;
-const row1 = techs.slice(0, 12);
-const row2 = techs.slice(12).concat(techs.slice(0, 4));
+const row1 = techs.slice(0, 14);
+const row2 = techs.slice(7).concat(techs.slice(0, 7));
 
 const TechIcon = ({ name }: { name: string }) => (
   <div className="flex-shrink-0 w-14 h-14 rounded-xl border border-border flex items-center justify-center bg-secondary/30 hover:bg-secondary/60 transition-all duration-300 hover:scale-110 mx-2">
@@ -66,7 +66,7 @@ const TechStackMarquee = () => {
           <div className="absolute left-0 top-0 bottom-0 w-40 md:w-64 bg-gradient-to-r from-background via-background/80 to-transparent z-10" />
           <div className="absolute right-0 top-0 bottom-0 w-40 md:w-64 bg-gradient-to-l from-background via-background/80 to-transparent z-10" />
           <div className="flex marquee-left">
-            {[...row1, ...row1].map((tech, i) => (
+            {[...row1, ...row1, ...row1, ...row1].map((tech, i) => (
               <TechIcon key={`r1-${i}`} name={tech} />
             ))}
           </div>
@@ -77,7 +77,7 @@ const TechStackMarquee = () => {
           <div className="absolute left-0 top-0 bottom-0 w-40 md:w-64 bg-gradient-to-r from-background via-background/80 to-transparent z-10" />
           <div className="absolute right-0 top-0 bottom-0 w-40 md:w-64 bg-gradient-to-l from-background via-background/80 to-transparent z-10" />
           <div className="flex marquee-right">
-            {[...row2, ...row2].map((tech, i) => (
+            {[...row2, ...row2, ...row2, ...row2].map((tech, i) => (
               <TechIcon key={`r2-${i}`} name={tech} />
             ))}
           </div>
