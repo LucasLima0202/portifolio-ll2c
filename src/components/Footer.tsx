@@ -11,7 +11,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center gap-2 font-display font-bold text-lg text-foreground">
               <span className="border border-foreground/30 rounded-md px-2 py-0.5 text-sm px-3 py-3">
-                  <img src="/public/favicon.svg" width={25} />
+                  <img src="/favicon.svg" width={25} alt="" />
               </span>
               {siteContent.brand}
             </div>

@@ -1,18 +1,10 @@
 import type { SiteContent } from "./pt";
+import { sharedContent } from "./shared";
 
 export const enContent: SiteContent = {
-  name: "Lucas Lima",
-  brand: "LL2C",
-  title: "Full-Stack Developer",
+  ...sharedContent,
   subtitle: "Building high-performance digital solutions focused on automation, modern front-end, and scalable systems.",
   ctaText: "View Projects",
-
-  nav: [
-    { label: "Home", href: "#home" },
-    { label: "Services", href: "#services" },
-    { label: "Projects", href: "#projects" },
-    { label: "Contact", href: "#contact" },
-  ],
 
   services: [
     {
@@ -37,27 +29,6 @@ export const enContent: SiteContent = {
     titleBold: "every day",
     subtitle: "Modern tools for building fast, efficient, and scalable solutions.",
   },
-
-  technologies: [
-    "OpenAI",
-    "MySQL",
-    "n8n",
-    "Supabase",
-    "Vercel",
-    "Python",
-    "Discord",
-    "React",
-    "Airtable",
-    "TypeScript",
-    "Node.js",
-    "GitHub",
-    "Docker",
-    "PostgreSQL",
-    "Figma",
-    "Next.js",
-    "ManyChat",
-    "Html",
-  ],
 
   projectsSection: {
     title: "My",
@@ -113,20 +84,12 @@ export const enContent: SiteContent = {
     errorToast: "Couldn't send your message. Please try again.",
   },
 
-  social: {
-    twitter: "https://twitter.com",
-    github: "https://github.com/LucasLima0202",
-    linkedin: "https://br.linkedin.com/in/lucas-lima-cunha-824b25210",
-  },
+  social: sharedContent.social,
 
   footer: {
     copyright: "© LL2C - Lucas Lima Cunha | All Rights Reserved.",
     socialLabel: "My socials:",
     contactLabel: "Contact",
-    links: [
-      { label: "Imprint", href: "#" },
-      { label: "Security", href: "#" },
-      { label: "Privacy", href: "#" },
-    ],
+    links: sharedContent.footerLinks,
   },
 };

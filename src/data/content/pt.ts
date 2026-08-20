@@ -1,16 +1,9 @@
+import { sharedContent } from "./shared";
+
 export const ptContent = {
-  name: "Lucas Lima",
-  brand: "LL2C",
-  title: "Full-Stack Developer",
+  ...sharedContent,
   subtitle: "Desenvolvendo soluções digitais de alta performance com foco em automações, front-end moderno e sistemas escaláveis.",
   ctaText: "Ver Projetos",
-
-  nav: [
-    { label: "Home", href: "#home" },
-    { label: "Services", href: "#services" },
-    { label: "Projects", href: "#projects" },
-    { label: "Contact", href: "#contact" },
-  ],
 
   services: [
     {
@@ -35,27 +28,6 @@ export const ptContent = {
     titleBold: "no dia a dia",
     subtitle: "Ferramentas modernas para criar soluções rápidas, eficientes e escaláveis.",
   },
-
-  technologies: [
-    "OpenAI",
-    "MySQL",
-    "n8n",
-    "Supabase",
-    "Vercel",
-    "Python",
-    "Discord",
-    "React",
-    "Airtable",
-    "TypeScript",
-    "Node.js",
-    "GitHub",
-    "Docker",
-    "PostgreSQL",
-    "Figma",
-    "Next.js",
-    "ManyChat",
-    "Html",
-  ],
 
   projectsSection: {
     title: "Meus",
@@ -111,21 +83,13 @@ export const ptContent = {
     errorToast: "Não foi possível enviar sua mensagem. Tente novamente.",
   },
 
-  social: {
-    twitter: "https://twitter.com",
-    github: "https://github.com/LucasLima0202",
-    linkedin: "https://br.linkedin.com/in/lucas-lima-cunha-824b25210",
-  },
+  social: sharedContent.social,
 
   footer: {
     copyright: "© LL2C - Lucas Lima Cunha | Todos Direitos Reservados.",
     socialLabel: "Minhas redes :",
     contactLabel: "Contato",
-    links: [
-      { label: "Imprint", href: "#" },
-      { label: "Security", href: "#" },
-      { label: "Privacy", href: "#" },
-    ],
+    links: sharedContent.footerLinks,
   },
 };
 

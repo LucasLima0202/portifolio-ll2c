@@ -1,7 +1,10 @@
 import { useSiteContent } from "@/contexts/LanguageContext";
+import claudeIcon from "@/assets/icon/claude.png";
+import manychatIcon from "@/assets/icon/manychat.png";
+import htmlIcon from "@/assets/icon/html.png";
 
 const techIcons: Record<string, string> = {
-  "OpenAI": "src/assets/icon/claude.png",
+  "OpenAI": claudeIcon,
   "MySQL": "https://cdn.simpleicons.org/mysql/white",
   "n8n": "https://cdn.simpleicons.org/n8n/white",
   "Supabase": "https://cdn.simpleicons.org/supabase/white",
@@ -17,8 +20,8 @@ const techIcons: Record<string, string> = {
   "PostgreSQL": "https://cdn.simpleicons.org/postgresql/white",
   "Figma": "https://cdn.simpleicons.org/figma/white",
   "Next.js": "https://cdn.simpleicons.org/nextdotjs/white",
-  "ManyChat": "/src/assets/icon/manychat.png",
-  "Html": "src/assets/icon/html.png"
+  "ManyChat": manychatIcon,
+  "Html": htmlIcon
 };
 
 const TechIcon = ({ name }: { name: string }) => (

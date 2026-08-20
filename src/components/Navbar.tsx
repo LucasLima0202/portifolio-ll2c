@@ -24,7 +24,7 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between h-16 px-6">
         <a href="#home" className="flex items-center gap-2 font-display font-bold text-lg text-foreground">
           <span className=" rounded-md px-2 py-0.5 text-sm">
-            <img src="/public/favicon.svg" width={25} />
+            <img src="/favicon.svg" width={25} alt="" />
           </span>
           {siteContent.brand}
         </a>
