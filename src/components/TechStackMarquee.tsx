@@ -1,35 +1,25 @@
-import { siteContent } from "@/data/siteContent";
+import { useSiteContent } from "@/contexts/LanguageContext";
 
 const techIcons: Record<string, string> = {
-  "OpenAI": "https://cdn.simpleicons.org/openai/white",
+  "OpenAI": "src/assets/icon/claude.png",
   "MySQL": "https://cdn.simpleicons.org/mysql/white",
   "n8n": "https://cdn.simpleicons.org/n8n/white",
   "Supabase": "https://cdn.simpleicons.org/supabase/white",
   "Vercel": "https://cdn.simpleicons.org/vercel/white",
   "Python": "https://cdn.simpleicons.org/python/white",
-  "Excel": "https://cdn.simpleicons.org/microsoftexcel/white",
   "Discord": "https://cdn.simpleicons.org/discord/white",
-  "Slack": "https://cdn.simpleicons.org/slack/white",
   "React": "https://cdn.simpleicons.org/react/white",
-  "Power BI": "https://cdn.simpleicons.org/powerbi/white",
   "Airtable": "https://cdn.simpleicons.org/airtable/white",
-  "LangChain": "https://cdn.simpleicons.org/langchain/white",
   "TypeScript": "https://cdn.simpleicons.org/typescript/white",
   "Node.js": "https://cdn.simpleicons.org/nodedotjs/white",
-  "Tailwind": "https://cdn.simpleicons.org/tailwindcss/white",
   "GitHub": "https://cdn.simpleicons.org/github/white",
   "Docker": "https://cdn.simpleicons.org/docker/white",
   "PostgreSQL": "https://cdn.simpleicons.org/postgresql/white",
   "Figma": "https://cdn.simpleicons.org/figma/white",
   "Next.js": "https://cdn.simpleicons.org/nextdotjs/white",
-  "ManyChat": "https://cdn.simpleicons.org/manychat/white",
-  "Zapier": "https://cdn.simpleicons.org/zapier/white",
-  "Firebase": "https://cdn.simpleicons.org/firebase/white",
+  "ManyChat": "/src/assets/icon/manychat.png",
+  "Html": "src/assets/icon/html.png"
 };
-
-const techs = siteContent.technologies;
-const row1 = techs.slice(0, 14);
-const row2 = techs.slice(7).concat(techs.slice(0, 7));
 
 const TechIcon = ({ name }: { name: string }) => (
   <div className="flex-shrink-0 w-14 h-14 rounded-xl border border-border flex items-center justify-center bg-secondary/30 hover:bg-secondary/60 transition-all duration-300 hover:scale-110 mx-2">
@@ -45,6 +35,11 @@ const TechIcon = ({ name }: { name: string }) => (
 );
 
 const TechStackMarquee = () => {
+  const siteContent = useSiteContent();
+  const techs = siteContent.technologies;
+  const row1 = techs.slice(0, 14);
+  const row2 = techs.slice(7).concat(techs.slice(0, 7));
+
   return (
     <section className="relative py-24 overflow-hidden">
       <div className="absolute inset-0 glow-bg opacity-40" />
@@ -88,7 +83,7 @@ const TechStackMarquee = () => {
             href="#projects"
             className="inline-flex items-center gap-2 bg-foreground text-background font-medium px-8 py-3 rounded-full hover:bg-foreground/90 transition-all duration-300 hover:scale-105 text-sm"
           >
-            Ver Projetos
+            {siteContent.ctaText}
           </a>
         </div>
       </div>

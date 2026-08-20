@@ -1,7 +1,8 @@
-import { siteContent } from "@/data/siteContent";
+import { useSiteContent } from "@/contexts/LanguageContext";
 import { ArrowRight } from "lucide-react";
-
+import RiseIcon from "/src/assets/svg/icon_rise.svg";
 const ProjectsSection = () => {
+  const siteContent = useSiteContent();
   const { projects } = siteContent;
 
   return (
@@ -24,7 +25,12 @@ const ProjectsSection = () => {
           {/* Project 1 - large card */}
           <div className="glass-card p-8 md:col-span-1 md:row-span-2 flex flex-col justify-between min-h-[400px]">
             <div>
+              <div className="flex gap-1 items-center">
+               <img src={RiseIcon} alt="Ícone de destaque" className="w-10 h-10" />
+              <div>
+              </div>
               <h3 className="font-display font-semibold text-xl text-foreground">{projects[0].title}</h3>
+              </div>
               <div className="mt-2 border-t border-dashed border-border" />
               <p className="mt-4 text-muted-foreground text-sm leading-relaxed">{projects[0].description}</p>
               <div className="flex gap-2 mt-4 flex-wrap">
@@ -36,7 +42,8 @@ const ProjectsSection = () => {
               </div>
             </div>
             <a
-              href="#"
+              href={projects[0].link}
+              target="_blank"
               className="mt-6 inline-flex items-center gap-2 text-sm text-foreground border border-border rounded-full px-5 py-2 w-fit hover:bg-foreground/10 transition-all duration-300"
             >
               {projects[0].cta}
@@ -59,7 +66,8 @@ const ProjectsSection = () => {
               </div>
             </div>
             <a
-              href="#"
+              href={projects[1].link}
+              target="_blank"
               className="mt-4 inline-flex items-center gap-2 text-sm text-foreground border border-border rounded-full px-5 py-2 w-fit hover:bg-foreground/10 transition-all duration-300"
             >
               {projects[1].cta}
@@ -82,7 +90,8 @@ const ProjectsSection = () => {
               </div>
             </div>
             <a
-              href="#"
+              href={projects[1].link}
+              target="_blank"
               className="mt-4 inline-flex items-center gap-2 text-sm text-foreground border border-border rounded-full px-5 py-2 w-fit hover:bg-foreground/10 transition-all duration-300"
             >
               {projects[2].cta}

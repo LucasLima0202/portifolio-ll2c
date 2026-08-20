@@ -1,4 +1,4 @@
-import { siteContent } from "@/data/siteContent";
+import { useSiteContent } from "@/contexts/LanguageContext";
 import { Bot, Briefcase, Code } from "lucide-react";
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -8,6 +8,8 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 const ServicesHighlights = () => {
+  const siteContent = useSiteContent();
+
   return (
     <section id="services" className="relative py-8 px-6">
       <div className="container mx-auto">

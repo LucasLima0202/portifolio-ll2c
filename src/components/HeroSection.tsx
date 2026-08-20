@@ -1,8 +1,10 @@
-import { siteContent } from "@/data/siteContent";
+import { useSiteContent } from "@/contexts/LanguageContext";
 import { ArrowRight, Rocket } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const HeroSection = () => {
+  const siteContent = useSiteContent();
+
   return (
     <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background image */}
