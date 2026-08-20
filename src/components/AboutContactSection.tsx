@@ -1,17 +1,52 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { siteContent } from "@/data/siteContent";
+
+const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
+
+const initialForm = { name: "", email: "", reason: "", message: "" };
 
 const AboutContactSection = () => {
   const { about, contact } = siteContent;
-  const [form, setForm] = useState({ name: "", reason: "", message: "" });
+  const [form, setForm] = useState(initialForm);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const text = `Olá! Meu nome é ${form.name}. Motivo: ${form.reason}. ${form.message}`;
-    window.open(
-      `https://wa.me/${contact.whatsappNumber}?text=${encodeURIComponent(text)}`,
-      "_blank"
-    );
+
+    const botcheckInput = e.currentTarget.elements.namedItem(
+      "botcheck"
+    ) as HTMLInputElement | null;
+
+    const formData = new FormData();
+    formData.append("access_key", import.meta.env.VITE_WEB3FORMS_ACCESS_KEY ?? "");
+    formData.append("subject", `Novo contato pelo Portfólio – ${form.reason}`);
+    formData.append("name", form.name);
+    formData.append("email", form.email);
+    formData.append("reason", form.reason);
+    formData.append("message", form.message);
+    formData.append("botcheck", botcheckInput?.checked ? "true" : "");
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(WEB3FORMS_ENDPOINT, {
+        method: "POST",
+        body: formData,
+      });
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        toast.success("Mensagem enviada! Vou te responder em breve.");
+        setForm(initialForm);
+      } else {
+        toast.error("Não foi possível enviar sua mensagem. Tente novamente.");
+      }
+    } catch {
+      toast.error("Não foi possível enviar sua mensagem. Tente novamente.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -34,10 +69,25 @@ const AboutContactSection = () => {
           {/* Right - Contact form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
+              type="checkbox"
+              name="botcheck"
+              style={{ display: "none" }}
+              tabIndex={-1}
+              autoComplete="off"
+            />
+            <input
               type="text"
               placeholder="Qual seu nome"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="w-full px-5 py-4 rounded-xl bg-foreground text-background placeholder:text-background/50 text-sm outline-none focus:ring-2 focus:ring-ring"
+              required
+            />
+            <input
+              type="email"
+              placeholder="Seu e-mail"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
               className="w-full px-5 py-4 rounded-xl bg-foreground text-background placeholder:text-background/50 text-sm outline-none focus:ring-2 focus:ring-ring"
               required
             />
@@ -59,9 +109,10 @@ const AboutContactSection = () => {
             />
             <button
               type="submit"
-              className="w-full py-4 rounded-full bg-secondary border border-border text-foreground font-medium text-sm hover:bg-secondary/80 transition-all duration-300"
+              disabled={isSubmitting}
+              className="w-full py-4 rounded-full bg-secondary border border-border text-foreground font-medium text-sm hover:bg-secondary/80 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {contact.buttonText}
+              {isSubmitting ? "Enviando..." : contact.buttonText}
             </button>
           </form>
         </div>
