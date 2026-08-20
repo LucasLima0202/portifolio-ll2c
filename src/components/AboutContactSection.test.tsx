@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import AboutContactSection from "./AboutContactSection";
 import { toast } from "sonner";
 
@@ -7,10 +8,18 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
+const renderWithLanguage = () =>
+  render(
+    <LanguageProvider>
+      <AboutContactSection />
+    </LanguageProvider>
+  );
+
 describe("AboutContactSection", () => {
   beforeEach(() => {
     vi.stubEnv("VITE_WEB3FORMS_ACCESS_KEY", "test-access-key");
     global.fetch = vi.fn();
+    localStorage.clear();
   });
 
   afterEach(() => {
@@ -19,18 +28,18 @@ describe("AboutContactSection", () => {
   });
 
   const fillForm = () => {
-    fireEvent.change(screen.getByPlaceholderText("Qual seu nome"), {
+    fireEvent.change(screen.getByPlaceholderText("Your name"), {
       target: { value: "Maria" },
     });
-    fireEvent.change(screen.getByPlaceholderText("Seu e-mail"), {
+    fireEvent.change(screen.getByPlaceholderText("Your email"), {
       target: { value: "maria@example.com" },
     });
-    fireEvent.change(screen.getByPlaceholderText("Motivo do Contato"), {
-      target: { value: "Orçamento" },
+    fireEvent.change(screen.getByPlaceholderText("Reason for contact"), {
+      target: { value: "Budget" },
     });
     fireEvent.change(
-      screen.getByPlaceholderText("Campo de Texto para escrever"),
-      { target: { value: "Olá, gostaria de um orçamento." } }
+      screen.getByPlaceholderText("Write your message here"),
+      { target: { value: "Hi, I'd like a quote." } }
     );
   };
 
@@ -40,9 +49,9 @@ describe("AboutContactSection", () => {
       json: async () => ({ success: true }),
     });
 
-    render(<AboutContactSection />);
+    renderWithLanguage();
     fillForm();
-    fireEvent.click(screen.getByRole("button", { name: /mande uma mensagem/i }));
+    fireEvent.click(screen.getByRole("button", { name: /send a message/i }));
 
     await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
 
@@ -52,8 +61,8 @@ describe("AboutContactSection", () => {
     expect(body.get("access_key")).toBe("test-access-key");
     expect(body.get("name")).toBe("Maria");
     expect(body.get("email")).toBe("maria@example.com");
-    expect(body.get("message")).toBe("Olá, gostaria de um orçamento.");
-    expect(body.get("subject")).toBe("Novo contato pelo Portfólio – Orçamento");
+    expect(body.get("message")).toBe("Hi, I'd like a quote.");
+    expect(body.get("subject")).toBe("New portfolio contact – Budget");
     expect(body.get("botcheck")).toBe("");
   });
 
@@ -63,17 +72,17 @@ describe("AboutContactSection", () => {
       json: async () => ({ success: true }),
     });
 
-    render(<AboutContactSection />);
+    renderWithLanguage();
     fillForm();
-    fireEvent.click(screen.getByRole("button", { name: /mande uma mensagem/i }));
+    fireEvent.click(screen.getByRole("button", { name: /send a message/i }));
 
     await waitFor(() => expect(toast.success).toHaveBeenCalled());
 
-    expect(screen.getByPlaceholderText("Qual seu nome")).toHaveValue("");
-    expect(screen.getByPlaceholderText("Seu e-mail")).toHaveValue("");
-    expect(screen.getByPlaceholderText("Motivo do Contato")).toHaveValue("");
+    expect(screen.getByPlaceholderText("Your name")).toHaveValue("");
+    expect(screen.getByPlaceholderText("Your email")).toHaveValue("");
+    expect(screen.getByPlaceholderText("Reason for contact")).toHaveValue("");
     expect(
-      screen.getByPlaceholderText("Campo de Texto para escrever")
+      screen.getByPlaceholderText("Write your message here")
     ).toHaveValue("");
   });
 
@@ -83,17 +92,17 @@ describe("AboutContactSection", () => {
       json: async () => ({ success: false }),
     });
 
-    render(<AboutContactSection />);
+    renderWithLanguage();
     fillForm();
-    fireEvent.click(screen.getByRole("button", { name: /mande uma mensagem/i }));
+    fireEvent.click(screen.getByRole("button", { name: /send a message/i }));
 
     await waitFor(() => expect(toast.error).toHaveBeenCalled());
 
-    expect(screen.getByPlaceholderText("Qual seu nome")).toHaveValue("Maria");
+    expect(screen.getByPlaceholderText("Your name")).toHaveValue("Maria");
   });
 
   it("renders a hidden honeypot field that real visitors never see", () => {
-    render(<AboutContactSection />);
+    renderWithLanguage();
     const honeypot = document.querySelector(
       'input[name="botcheck"]'
     ) as HTMLInputElement;

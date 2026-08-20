@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { siteContent } from "@/data/siteContent";
+import { useSiteContent } from "@/contexts/LanguageContext";
 
 const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
 
 const initialForm = { name: "", email: "", reason: "", message: "" };
 
 const AboutContactSection = () => {
+  const siteContent = useSiteContent();
   const { about, contact } = siteContent;
   const [form, setForm] = useState(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,7 +26,7 @@ const AboutContactSection = () => {
 
     const formData = new FormData();
     formData.append("access_key", accessKey);
-    formData.append("subject", `Novo contato pelo Portfólio – ${form.reason}`);
+    formData.append("subject", `${contact.subjectPrefix} – ${form.reason}`);
     formData.append("name", form.name);
     formData.append("email", form.email);
     formData.append("reason", form.reason);
@@ -42,15 +43,15 @@ const AboutContactSection = () => {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        toast.success("Mensagem enviada! Vou te responder em breve.");
+        toast.success(contact.successToast);
         setForm(initialForm);
       } else {
         console.error("Web3Forms submission failed:", result);
-        toast.error("Não foi possível enviar sua mensagem. Tente novamente.");
+        toast.error(contact.errorToast);
       }
     } catch (error) {
       console.error("Contact form submission error:", error);
-      toast.error("Não foi possível enviar sua mensagem. Tente novamente.");
+      toast.error(contact.errorToast);
     } finally {
       setIsSubmitting(false);
     }
@@ -84,7 +85,7 @@ const AboutContactSection = () => {
             />
             <input
               type="text"
-              placeholder="Qual seu nome"
+              placeholder={contact.namePlaceholder}
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               className="w-full px-5 py-4 rounded-xl bg-foreground text-background placeholder:text-background/50 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -92,7 +93,7 @@ const AboutContactSection = () => {
             />
             <input
               type="email"
-              placeholder="Seu e-mail"
+              placeholder={contact.emailPlaceholder}
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               className="w-full px-5 py-4 rounded-xl bg-foreground text-background placeholder:text-background/50 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -100,14 +101,14 @@ const AboutContactSection = () => {
             />
             <input
               type="text"
-              placeholder="Motivo do Contato"
+              placeholder={contact.reasonPlaceholder}
               value={form.reason}
               onChange={(e) => setForm({ ...form, reason: e.target.value })}
               className="w-full px-5 py-4 rounded-xl bg-foreground text-background placeholder:text-background/50 text-sm outline-none focus:ring-2 focus:ring-ring"
               required
             />
             <textarea
-              placeholder="Campo de Texto para escrever"
+              placeholder={contact.messagePlaceholder}
               value={form.message}
               onChange={(e) => setForm({ ...form, message: e.target.value })}
               rows={5}
@@ -119,7 +120,7 @@ const AboutContactSection = () => {
               disabled={isSubmitting}
               className="w-full py-4 rounded-full bg-secondary border border-border text-foreground font-medium text-sm hover:bg-secondary/80 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Enviando..." : contact.buttonText}
+              {isSubmitting ? contact.sendingLabel : contact.buttonText}
             </button>
           </form>
         </div>
