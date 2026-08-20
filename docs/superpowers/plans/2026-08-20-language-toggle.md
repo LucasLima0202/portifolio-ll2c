@@ -1081,7 +1081,7 @@ Replace the full contents of `src/components/Footer.tsx`. The two previously-har
 
 ```tsx
 import { useSiteContent } from "@/contexts/LanguageContext";
-import { Github, Linkedin, Twitter } from "lucide-react";
+import { Github, Linkedin } from "lucide-react";
 
 const Footer = () => {
   const siteContent = useSiteContent();
