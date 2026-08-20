@@ -41,6 +41,11 @@ Each of the 7 consuming components: replace `import { siteContent } from "@/data
 ```
 Shown in both the desktop menu (where the badge already lives, `hidden md:flex` block) and added to the mobile menu (`Navbar.tsx:60-73`), which currently has no language indicator at all.
 
+**Other hardcoded strings found during file review (not previously in `siteContent`):**
+- `Footer.tsx:16` renders `"Minhas redes :"` and `Footer.tsx:32` renders `"Contato"` directly, outside `siteContent`. Both become `footer.socialLabel` / `footer.contactLabel` (new fields, table below) read via `useSiteContent()`.
+- `TechStackMarquee.tsx:85` hardcodes `"Ver Projetos"` on its bottom CTA link, instead of reusing the `ctaText` field that `HeroSection` already reads for the identical link elsewhere on the page. No new content key needed — swap it to `useSiteContent().ctaText`.
+- `ProjectsSection.tsx:92` has a pre-existing bug unrelated to this feature: the third project card's link uses `projects[1].link` (project 2's URL) instead of `projects[2].link`. Preserve this exactly as-is when converting the file to `useSiteContent()` — fixing it is out of scope for a copy/i18n change.
+
 ## Content
 
 Shared across both languages (untranslated — proper nouns, URLs, tech names): `name`, `brand`, `nav` labels (already English words: "Home", "Services", "Projects", "Contact" — kept as-is in both, since they already function as language-neutral UI labels in the current Portuguese version), `technologies`, `social` URLs, each project's `title`, `labels`, and `link`.
@@ -74,7 +79,10 @@ Translated per language — full copy below. `pt.ts` keeps the site's current wo
 | `contact.successToast` *(new)* | Mensagem enviada! Vou te responder em breve. | Message sent! I'll get back to you soon. |
 | `contact.errorToast` *(new)* | Não foi possível enviar sua mensagem. Tente novamente. | Couldn't send your message. Please try again. |
 | `footer.copyright` | © LL2C - Lucas Lima Cunha \| Todos Direitos Reservados. | © LL2C - Lucas Lima Cunha \| All Rights Reserved. |
-| `footer.links` | Aviso Legal, Segurança, Privacidade (href `#`, unchanged) | Imprint, Security, Privacy (href `#`, unchanged) |
+| `footer.socialLabel` *(new)* | Minhas redes : | My socials: |
+| `footer.contactLabel` *(new)* | Contato | Contact |
+
+`footer.links` (Imprint/Security/Privacy) is dead code today — `Footer.tsx:38-45` renders it inside a JSX comment (`{/* ... */}`), so it never reaches the page. It stays in the content objects, identical in both languages (matching its current English wording), untouched by this feature — translating inert markup wouldn't serve a site-wide-i18n goal, and re-enabling that block is out of scope here.
 
 ## Contact Form Changes
 
