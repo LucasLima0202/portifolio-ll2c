@@ -1,15 +1,19 @@
 import { useState, useEffect } from "react";
-import { siteContent } from "@/data/siteContent";
+import { useLanguage, useSiteContent } from "@/contexts/LanguageContext";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { language, toggleLanguage } = useLanguage();
+  const siteContent = useSiteContent();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const languageLabel = language === "pt" ? "🇧🇷 PT-BR" : "🇺🇸 EN";
 
   return (
     <nav
@@ -19,7 +23,9 @@ const Navbar = () => {
     >
       <div className="container mx-auto flex items-center justify-between h-16 px-6">
         <a href="#home" className="flex items-center gap-2 font-display font-bold text-lg text-foreground">
-          <span className="border border-foreground/30 rounded-md px-2 py-0.5 text-sm">⌐</span>
+          <span className=" rounded-md px-2 py-0.5 text-sm">
+            <img src="/public/favicon.svg" width={25} />
+          </span>
           {siteContent.brand}
         </a>
 
@@ -34,9 +40,12 @@ const Navbar = () => {
               {item.label}
             </a>
           ))}
-          <span className="text-xs border border-border rounded-full px-3 py-1 text-muted-foreground">
-            🇧🇷 pt-br
-          </span>
+          <button
+            onClick={toggleLanguage}
+            className="text-xs border border-border rounded-full px-3 py-1 text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors"
+          >
+            {languageLabel}
+          </button>
         </div>
 
         {/* Mobile toggle */}
@@ -67,6 +76,12 @@ const Navbar = () => {
               {item.label}
             </a>
           ))}
+          <button
+            onClick={toggleLanguage}
+            className="text-xs border border-border rounded-full px-3 py-1 text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors"
+          >
+            {languageLabel}
+          </button>
         </div>
       )}
     </nav>
