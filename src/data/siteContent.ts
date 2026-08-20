@@ -85,7 +85,6 @@ export const siteContent = {
 
   contact: {
     buttonText: "Mande uma Mensagem",
-    whatsappNumber: "5500000000000",
   },
 
   social: {
