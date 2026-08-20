@@ -23,15 +23,31 @@ export default defineConfig(({ mode }) => ({
         name: "LL2C - Lucas Lima",
         short_name: "LL2C",
         description: "Portfólio de Lucas Lima Cunha - Desenvolvedor Full Stack, automações com IA e sistemas sob medida.",
+        lang: "pt-BR",
         theme_color: "#000000",
         background_color: "#000000",
         display: "standalone",
         start_url: "/",
         scope: "/",
+        id: "/",
         icons: [
           { src: "/pwa-192x192.png", sizes: "192x192", type: "image/png", purpose: "any" },
           { src: "/pwa-512x512.png", sizes: "512x512", type: "image/png", purpose: "any" },
           { src: "/pwa-512x512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+        ],
+      },
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,svg,png,jpg,jpeg,webp,ico}"],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "google-fonts",
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
         ],
       },
     }),
