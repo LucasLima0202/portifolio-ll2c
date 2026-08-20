@@ -18,8 +18,13 @@ const AboutContactSection = () => {
       "botcheck"
     ) as HTMLInputElement | null;
 
+    const accessKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY ?? "";
+    if (!accessKey) {
+      console.warn("VITE_WEB3FORMS_ACCESS_KEY is not set — contact form submissions will fail.");
+    }
+
     const formData = new FormData();
-    formData.append("access_key", import.meta.env.VITE_WEB3FORMS_ACCESS_KEY ?? "");
+    formData.append("access_key", accessKey);
     formData.append("subject", `Novo contato pelo Portfólio – ${form.reason}`);
     formData.append("name", form.name);
     formData.append("email", form.email);
@@ -40,9 +45,11 @@ const AboutContactSection = () => {
         toast.success("Mensagem enviada! Vou te responder em breve.");
         setForm(initialForm);
       } else {
+        console.error("Web3Forms submission failed:", result);
         toast.error("Não foi possível enviar sua mensagem. Tente novamente.");
       }
-    } catch {
+    } catch (error) {
+      console.error("Contact form submission error:", error);
       toast.error("Não foi possível enviar sua mensagem. Tente novamente.");
     } finally {
       setIsSubmitting(false);
