@@ -1,7 +1,7 @@
 export const sharedContent = {
   name: "Lucas Lima",
   brand: "LL2C",
-  title: "Full-Stack Developer",
+  title: "Frontend Developer",
   nav: [
     { label: "Home", href: "#home" },
     { label: "Services", href: "#services" },
@@ -29,7 +29,6 @@ export const sharedContent = {
     "Html",
   ],
   social: {
-    twitter: "https://twitter.com",
     github: "https://github.com/LucasLima0202",
     linkedin: "https://br.linkedin.com/in/lucas-lima-cunha-824b25210",
   },
