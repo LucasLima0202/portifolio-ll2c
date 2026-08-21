@@ -64,7 +64,7 @@ export const ptContent = {
 
   about: {
     title: "Sobre",
-    role: "Sou desenvolvedor Full Stack\ncom foco Front-End e Automações.",
+    role: "Sou desenvolvedor de Frontend e Automações.",
     paragraphs: [
       "Comecei na programação através de um curso técnico e atualmente frequentando faculdade de Sistema da Informação e desde então, venho evoluindo com formações e prática constante no mercado.",
       "Tenho experiência com projetos reais como freelancer e já atuei em ambientes de alta performance, desenvolvendo soluções para empresas com foco em resultado.",

@@ -65,7 +65,7 @@ export const enContent: SiteContent = {
 
   about: {
     title: "About",
-    role: "I'm a Full Stack developer\nfocused on Front-End and Automation.",
+    role: "I'm a Frontend Developer focused on modern interfaces and AI-powered automation.",
     paragraphs: [
       "I started programming through a technical course and I'm currently pursuing a degree in Information Systems, constantly growing through further training and hands-on market practice.",
       "I have real-world freelance experience and have worked in high-performance environments, building results-driven solutions for companies.",
