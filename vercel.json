@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    { "source": "/personal", "destination": "/personal/index.html" },
+    { "source": "/personal/:path*", "destination": "/personal/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/landing/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600, stale-while-revalidate=86400" }]
+    }
+  ]
+}

@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lucas Lima · Front-end and automation</title>
+<meta name="description" content="Lucas Lima (LL2C): front-end developer building AI-powered automation. Projects, tools and contact.">
+<link rel="icon" href="assets/logo-favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="scrollcraft.css">
+<style>
+  :root {
+    --sc-canvas:     #031B2F;
+    --sc-surface:    #0B3954;
+    --sc-ink:        #F3F8FC;
+    --sc-ink-soft:   #A9C6DC;
+    --sc-accent:     #70E4EF;
+    --sc-accent-ink: #031B2F;
+    --sc-font-display: "Plus Jakarta Sans", system-ui, sans-serif;
+    --sc-font-text:    "Plus Jakarta Sans", system-ui, sans-serif;
+    --sc-font-mono:    "Plus Jakarta Sans", system-ui, sans-serif;
+    --sc-shadow-color: 206 88% 4%;
+
+    --route-dim: #14496b;
+    --sym-far:   #0B3954;
+  }
+  body { font-weight: 450; letter-spacing: 0; }
+  .sc-display { font-weight: 600; }
+
+  /* ---------------------------------------------------------- the world -- */
+  .world { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .world__far, .world__route { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .world__route { transition: opacity 420ms var(--sc-ease-out); }
+  .world__far { fill: var(--sym-far); }
+  .world__far { filter: blur(3px); opacity: .7; }
+  .route-dim  { fill: none; stroke: var(--route-dim); stroke-width: 1.5; }
+  .route-lit  { fill: none; stroke: var(--sc-accent); stroke-width: 1.5; }
+  .route-node { fill: var(--sc-canvas); stroke: var(--route-dim); stroke-width: 1.5; transition: fill 240ms var(--sc-ease-out), stroke 240ms var(--sc-ease-out); }
+  .route-node.is-passed { fill: var(--sc-accent); stroke: var(--sc-accent); }
+  .route-head { fill: var(--sc-accent); }
+  .world__vignette {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(120% 90% at 50% 50%, transparent 55%, color-mix(in oklab, #01101d 70%, transparent) 100%);
+  }
+
+  /* Scenery inside each leg. The engine owns the leg's opacity; the page owns
+     everything inside .scene. */
+  .scene { position: absolute; inset: 0; pointer-events: none; }
+  .poster-hold { display: none; }
+
+  /* ---------------------------------------------------------- hero planes -- */
+  .plane { position: absolute; will-change: transform; }
+  .plane--far {
+    right: -8vw; top: -12vh; height: 124vh; aspect-ratio: 139 / 156;
+    filter: blur(2.5px); opacity: .55;
+  }
+  .plane--far { fill: var(--sym-far); }
+  .plane--subject {
+    right: 11vw; top: 50%; height: min(56vh, 44vw); aspect-ratio: 139 / 156;
+    translate: 0 -50%;
+  }
+  .plane--subject svg { width: 100%; height: 100%; overflow: visible; }
+  .plane--subject path { fill: #fff; will-change: transform; }
+  .plane--fore {
+    left: -10vw; bottom: -30vh; height: 70vh; aspect-ratio: 139 / 156;
+    filter: blur(9px); opacity: .5;
+  }
+  .plane--fore { fill: #0d4366; }
+
+  /* -------------------------------------------------------------- chrome -- */
+  .bar {
+    position: fixed; inset: 0 0 auto 0; z-index: var(--sc-z-chrome);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: clamp(1rem, 2.4vh, 1.75rem) var(--sc-gutter);
+    pointer-events: none;
+  }
+  .bar > * { pointer-events: auto; }
+  .bar__mark img { height: 30px; width: auto; }
+  .cta {
+    display: inline-flex; align-items: center; gap: var(--sc-2);
+    padding: 0.7rem 1.15rem; border-radius: var(--sc-r-sm);
+    background: var(--sc-accent); color: var(--sc-accent-ink);
+    font-weight: 600; font-size: var(--sc-t-sm); text-decoration: none; white-space: nowrap;
+    box-shadow: var(--sc-e2);
+    transition: transform 140ms var(--sc-ease-out), background-color 160ms var(--sc-ease-out);
+  }
+  .cta svg { width: 14px; height: 14px; }
+  .cta--ghost {
+    background: color-mix(in oklab, var(--sc-canvas) 60%, transparent);
+    color: var(--sc-ink); box-shadow: inset 0 0 0 1px var(--sc-hairline-strong);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .cta:hover { background: #95ecf3; }
+    .cta--ghost:hover { background: color-mix(in oklab, var(--sc-surface) 70%, transparent); }
+  }
+  .cta:active { transform: scale(0.97); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--sc-accent); outline-offset: 3px; border-radius: 4px; }
+
+  /* The map. A world you cannot skip around in is a video. */
+  .map {
+    position: fixed; right: var(--sc-gutter); top: 50%; translate: 0 -50%;
+    z-index: var(--sc-z-chrome);
+  }
+  .map ol { list-style: none; margin: 0; padding: 0 0 0 var(--sc-5); position: relative; display: grid; gap: var(--sc-4); }
+  .map__track { position: absolute; left: 3px; top: 6px; bottom: 6px; width: 1px; background: var(--route-dim); }
+  .map__fill { position: absolute; left: 3px; top: 6px; width: 1px; height: calc(100% - 12px); background: var(--sc-accent); transform-origin: 50% 0; transform: scaleY(0); }
+  .map a {
+    position: relative; display: block; color: var(--sc-ink-soft); text-decoration: none;
+    font-size: var(--sc-t-xs); font-weight: 500; letter-spacing: 0.02em;
+    transition: color 160ms var(--sc-ease-out);
+  }
+  .map a::before {
+    content: ""; position: absolute; left: calc(-1 * var(--sc-5) + 0px); top: 50%;
+    width: 7px; height: 7px; translate: 0 -50%;
+    background: var(--sc-canvas); box-shadow: inset 0 0 0 1.5px var(--route-dim);
+    transition: background-color 200ms var(--sc-ease-out), box-shadow 200ms var(--sc-ease-out);
+  }
+  .map a.is-passed::before { background: var(--sc-accent); box-shadow: inset 0 0 0 1.5px var(--sc-accent); }
+  .map a[aria-current="true"] { color: var(--sc-ink); }
+  @media (hover: hover) and (pointer: fine) { .map a:hover { color: var(--sc-ink); } }
+
+  /* ---------------------------------------------------------------- copy -- */
+  .copy { position: absolute; }
+  .eyebrow { font-size: var(--sc-t-xs); font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sc-accent); margin: 0 0 var(--sc-4); }
+  .h-hero { font-size: clamp(2.8rem, 1.6rem + 4.6vw, 5.6rem); line-height: 0.98; letter-spacing: -0.035em; margin: 0; max-width: 11ch; }
+  .role { font-size: var(--sc-t-lg); font-weight: 500; color: var(--sc-ink); margin: var(--sc-4) 0 0; letter-spacing: -0.01em; }
+  .lede { font-size: var(--sc-t-base); color: var(--sc-ink-soft); max-width: 40ch; margin: var(--sc-3) 0 0; line-height: 1.65; text-wrap: pretty; }
+  .h-sec { font-size: var(--sc-t-2xl); line-height: 1.04; letter-spacing: -0.03em; margin: 0; max-width: 16ch; }
+
+  .copy--hero { left: var(--sc-gutter); bottom: clamp(3.5rem, 14vh, 9rem); max-width: 40rem; }
+  .copy--hero .actions { margin-top: var(--sc-6); display: flex; gap: var(--sc-3); flex-wrap: wrap; }
+
+  /* services: three stops stepping down the trail at 45° */
+  .copy--services { left: var(--sc-gutter); top: clamp(6rem, 18vh, 11rem); right: calc(var(--sc-gutter) + 9rem); }
+  .stops { list-style: none; margin: var(--sc-8) 0 0; padding: 0; display: grid; gap: var(--sc-6); }
+  .stop { display: grid; grid-template-columns: auto 1fr; gap: var(--sc-4); align-items: baseline; max-width: 30rem; }
+  .stop:nth-child(2) { margin-left: clamp(2rem, 9vw, 9rem); }
+  .stop:nth-child(3) { margin-left: clamp(4rem, 18vw, 18rem); }
+  .stop__node { width: 9px; height: 9px; background: var(--sc-accent); translate: 0 -2px; }
+  .stop h3 { margin: 0; font-size: var(--sc-t-lg); font-weight: 600; letter-spacing: -0.015em; }
+  .stop p { margin: var(--sc-1) 0 0; color: var(--sc-ink-soft); font-size: var(--sc-t-sm); }
+
+  /* tools: heading top-left, live label under the focus */
+  .tools__head { position: absolute; left: var(--sc-gutter); top: clamp(6rem, 17vh, 10rem); }
+  .tools__head p { margin: var(--sc-3) 0 0; color: var(--sc-ink-soft); max-width: 36ch; font-size: var(--sc-t-sm); }
+  .tools__label {
+    position: absolute; left: 50%; top: calc(var(--focus-y, 58vh) + 92px); translate: -50% 0;
+    text-align: center; width: min(30rem, 86vw);
+  }
+  .tools__name { display: block; font-size: var(--sc-t-xl); font-weight: 600; letter-spacing: -0.025em; line-height: 1.1; }
+  .tools__use { display: block; margin-top: var(--sc-2); color: var(--sc-ink-soft); font-size: var(--sc-t-sm); min-height: 1.6em; }
+  .tools__nav { margin-top: var(--sc-5); display: inline-flex; gap: var(--sc-2); }
+  .tools__nav button {
+    width: 40px; height: 40px; display: grid; place-items: center; cursor: pointer;
+    border: 0; border-radius: var(--sc-r-sm); background: color-mix(in oklab, var(--sc-surface) 55%, transparent);
+    box-shadow: inset 0 0 0 1px var(--sc-hairline-strong); color: var(--sc-ink);
+    transition: background-color 160ms var(--sc-ease-out), transform 120ms var(--sc-ease-out);
+  }
+  .tools__nav button:active { transform: scale(0.95); }
+  .tools__nav svg { width: 16px; height: 16px; }
+  @media (hover: hover) and (pointer: fine) { .tools__nav button:hover { background: var(--sc-surface); } }
+  .tools__count { font-variant-numeric: tabular-nums; color: var(--sc-ink-soft); font-size: var(--sc-t-xs); margin-top: var(--sc-3); display: block; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* tool belt (scenery) */
+  .belt { position: absolute; inset: 0; }
+  .belt__track { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; }
+  .belt__track path { fill: none; stroke: var(--route-dim); stroke-width: 1.5; }
+  .tool {
+    position: absolute; left: 0; top: 0; width: 56px; height: 56px; margin: -28px 0 0 -28px;
+    display: grid; place-items: center; border-radius: 12px;
+    background: color-mix(in oklab, var(--sc-surface) 70%, var(--sc-canvas));
+    box-shadow: var(--sc-edge), var(--sc-e2);
+    will-change: transform, opacity;
+  }
+  .tool img { width: 26px; height: 26px; }
+  .tool__mono { font-weight: 700; font-size: 13px; letter-spacing: -0.02em; color: var(--sc-ink); }
+  .grip { position: absolute; left: 0; top: 0; width: 150px; height: 168px; margin: -84px 0 0 -75px; overflow: visible; }
+  .grip path { fill: #fff; will-change: transform; }
+
+  /* projects: one at a time, anchors alternate */
+  .proj { max-width: 34rem; }
+  .copy--p1 { left: var(--sc-gutter); bottom: clamp(4rem, 15vh, 9rem); }
+  .copy--p2 { right: calc(var(--sc-gutter) + 9rem); bottom: clamp(4rem, 15vh, 9rem); text-align: right; }
+  .copy--p3 { left: var(--sc-gutter); top: clamp(7rem, 22vh, 12rem); }
+  .proj__head { display: flex; gap: var(--sc-4); align-items: center; }
+  .copy--p2 .proj__head { justify-content: flex-end; }
+  .proj__icon { width: 56px; height: 56px; border-radius: 12px; box-shadow: var(--sc-e2); }
+  .proj h3 { margin: 0; font-size: var(--sc-t-2xl); font-weight: 600; letter-spacing: -0.03em; line-height: 1.02; }
+  .proj p { margin: var(--sc-4) 0 0; color: var(--sc-ink-soft); max-width: 40ch; }
+  .copy--p2 .proj p { margin-left: auto; }
+  .stack { list-style: none; padding: 0; margin: var(--sc-4) 0 0; display: flex; flex-wrap: wrap; gap: var(--sc-1) var(--sc-4); font-size: var(--sc-t-xs); color: var(--sc-ink); font-weight: 500; letter-spacing: 0.02em; }
+  .copy--p2 .stack { justify-content: flex-end; }
+  .stack li + li::before { content: "·"; margin-right: var(--sc-4); color: var(--sc-ink-soft); }
+  .proj__link { display: inline-flex; gap: var(--sc-2); align-items: center; margin-top: var(--sc-5); color: var(--sc-accent); font-weight: 600; font-size: var(--sc-t-sm); text-decoration: none; text-underline-offset: 4px; }
+  .proj__link:hover { text-decoration: underline; }
+  .projects__tag { position: absolute; left: var(--sc-gutter); top: clamp(6rem, 15vh, 9rem); }
+  .copy--p3 .projects__tag { display: none; }
+
+  /* about */
+  .copy--about { left: 50%; top: 50%; translate: -50% -50%; width: min(36rem, 84vw); }
+  .copy--about p { color: var(--sc-ink-soft); margin: var(--sc-4) 0 0; }
+  .copy--about .about__role { color: var(--sc-ink); font-size: var(--sc-t-lg); font-weight: 500; margin-top: var(--sc-5); letter-spacing: -0.01em; }
+
+  /* finale: the symbol closes around the CTA */
+  .close-sym {
+    position: absolute; left: 50%; top: 50%; translate: -50% -50%;
+    height: min(66vh, 104vw); aspect-ratio: 139 / 156; overflow: visible;
+  }
+  .close-sym path { fill: #fff; will-change: transform; }
+  .finale__h { position: absolute; left: var(--sc-gutter); top: clamp(5.5rem, 13vh, 8rem); font-size: var(--sc-t-xl); max-width: 14ch; }
+  /* gap centre of the symbol is (70/139, 78/156) of its box: ~ (50.4%, 50%) */
+  .finale__cta { position: absolute; left: 50.4%; top: 50%; translate: -50% -50%; }
+  .finale__foot {
+    position: absolute; left: var(--sc-gutter); right: calc(var(--sc-gutter) + 9rem); bottom: clamp(1.25rem, 4vh, 2.5rem);
+    display: flex; justify-content: space-between; align-items: center; gap: var(--sc-4); flex-wrap: wrap;
+    font-size: var(--sc-t-xs); color: var(--sc-ink-soft);
+  }
+  .finale__links { display: flex; gap: var(--sc-5); }
+  .finale__links a { color: var(--sc-ink); text-decoration: none; font-weight: 500; }
+  .finale__links a:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+  /* -------------------------------------------------------------- mobile -- */
+  @media (max-width: 860px) {
+    .map { right: auto; left: 0; top: auto; bottom: 0; translate: none; width: 100%;
+           padding: var(--sc-3) var(--sc-gutter) calc(var(--sc-3) + env(safe-area-inset-bottom));
+           background: linear-gradient(to top, color-mix(in oklab, var(--sc-canvas) 92%, transparent), transparent); }
+    .map ol { grid-auto-flow: column; padding: 0; gap: 0; justify-content: space-between; }
+    .map__track, .map__fill { display: none; }
+    .map a { font-size: 0.7rem; padding: var(--sc-3) var(--sc-1) var(--sc-1); }
+    .map a::before { left: 50%; top: 0; translate: -50% 0; }
+    .bar .cta { padding: 0.55rem 0.85rem; font-size: 0.8rem; }
+    .bar__mark img { height: 24px; }
+    .plane--subject { right: 50%; translate: 50% 0; top: 13vh; height: 30vh; }
+    .plane--far { height: 80vh; right: -30vw; top: -6vh; }
+    .copy--hero { bottom: 6.5rem; right: var(--sc-gutter); }
+    .h-hero { font-size: var(--sc-t-2xl); }
+    .copy--services { right: var(--sc-gutter); top: 5.5rem; }
+    .stops { margin-top: var(--sc-6); gap: var(--sc-5); }
+    .stop:nth-child(2) { margin-left: 1.5rem; }
+    .stop:nth-child(3) { margin-left: 3rem; }
+    .tools__head { top: 5rem; right: var(--sc-gutter); }
+    .tool { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
+    .tool img { width: 22px; height: 22px; }
+    .grip { width: 124px; height: 139px; margin: -69.5px 0 0 -62px; }
+    .copy--p1, .copy--p2, .copy--p3 { left: var(--sc-gutter); right: var(--sc-gutter); top: auto; bottom: 6.5rem; text-align: left; }
+    .copy--p2 .proj__head, .copy--p2 .stack { justify-content: flex-start; }
+    .copy--p2 .proj p { margin-left: 0; }
+    .projects__tag { top: 5rem; }
+    .copy--p3 .projects__tag { display: block; }
+    .proj h3 { font-size: var(--sc-t-xl); }
+    .finale__h { top: 7rem; right: var(--sc-gutter); max-width: none; }
+    .close-sym { height: min(46vh, 82vw); top: 47%; }
+    .finale__cta { top: auto; bottom: 8.5rem; translate: -50% 0; left: 50%; }
+    .finale__foot { right: var(--sc-gutter); bottom: 4.5rem; }
+  }
+  @media (max-width: 860px) and (max-height: 700px) {
+    .lede { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sc-grain" aria-hidden="true"></div>
+
+<header class="bar">
+  <a class="bar__mark" href="#home" data-goto="0" aria-label="LL2C, back to top">
+    <img src="assets/Logo-complete.svg" width="351" height="156" alt="LL2C">
+  </a>
+  <a class="cta" href="https://br.linkedin.com/in/lucas-lima-cunha-824b25210" target="_blank" rel="noopener">Send a message</a>
+</header>
+
+<nav class="map" aria-label="Page map">
+  <span class="map__track" aria-hidden="true"></span>
+  <span class="map__fill" aria-hidden="true"></span>
+  <ol>
+    <li><a href="#home" data-goto="0">Home</a></li>
+    <li><a href="#services" data-goto="1">Services</a></li>
+    <li><a href="#tools" data-goto="2">Tools</a></li>
+    <li><a href="#projects" data-goto="3">Projects</a></li>
+    <li><a href="#about" data-goto="4">About</a></li>
+    <li><a href="#contact" data-goto="5">Contact</a></li>
+  </ol>
+</nav>
+
+<main data-sc-mode="worldflight" data-sc-seam="0.16">
+
+  <div data-sc-world>
+    <!-- Persistent world: never crossfades, the camera flies along it. -->
+    <div class="world" aria-hidden="true">
+      <svg class="world__far" id="far"></svg>
+      <svg class="world__route" id="route"></svg>
+      <div class="world__vignette"></div>
+    </div>
+
+    <!-- 1 · Início -->
+    <div data-sc-segment data-sc-w="1.6" data-sc-waypoint="Home">
+      <i class="poster-hold" data-sc-poster></i>
+      <div class="scene" aria-hidden="true">
+        <svg class="plane plane--far" data-depth="0.25" viewBox="0 0 139 156"><use href="#sym-l1"/><use href="#sym-l2"/></svg>
+        <div class="plane plane--subject" data-depth="0.6">
+          <svg viewBox="0 0 139 156">
+            <path id="hero-l1" d="M19.9404 119.683V11.457H40.1047V102.251H87.4018V119.683H19.9404Z"/>
+            <path id="hero-l2" d="M119.658 38.2383L119.237 146.463L99.0728 146.388L99.4261 55.5952L52.1294 55.4186L52.1972 37.9863L119.658 38.2383Z"/>
+          </svg>
+        </div>
+        <svg class="plane plane--fore" data-depth="1.4" viewBox="0 0 139 156"><use href="#sym-l2"/></svg>
+      </div>
+    </div>
+
+    <!-- 2 · Serviços: deliberately empty. The quiet before the peak. -->
+    <div data-sc-segment data-sc-w="1.4" data-sc-waypoint="Services">
+      <i class="poster-hold" data-sc-poster></i>
+    </div>
+
+    <!-- 3 · Ferramentas: the peak and the signature move -->
+    <div data-sc-segment data-sc-w="2.2" data-sc-waypoint="Tools">
+      <i class="poster-hold" data-sc-poster></i>
+      <div class="scene belt" id="belt" aria-hidden="true">
+        <svg class="belt__track"><path id="belt-path"/></svg>
+        <!-- tools injected from the TOOLS array below -->
+        <svg class="grip" id="grip" viewBox="0 0 139 156">
+          <path id="grip-l1" d="M19.9404 119.683V11.457H40.1047V102.251H87.4018V119.683H19.9404Z"/>
+          <path id="grip-l2" d="M119.658 38.2383L119.237 146.463L99.0728 146.388L99.4261 55.5952L52.1294 55.4186L52.1972 37.9863L119.658 38.2383Z"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- 4 · Projetos -->
+    <div data-sc-segment data-sc-w="3.6" data-sc-waypoint="Projects">
+      <i class="poster-hold" data-sc-poster></i>
+    </div>
+
+    <!-- 5 · Sobre -->
+    <div data-sc-segment data-sc-w="1.0" data-sc-waypoint="About">
+      <i class="poster-hold" data-sc-poster></i>
+    </div>
+
+    <!-- 6 · Contato: arrival. The symbol that opened now closes. -->
+    <div data-sc-segment data-sc-w="1.2" data-sc-waypoint="Contact">
+      <i class="poster-hold" data-sc-poster></i>
+      <div class="scene" aria-hidden="true">
+        <svg class="close-sym" viewBox="0 0 139 156">
+          <path id="close-l1" d="M19.9404 119.683V11.457H40.1047V102.251H87.4018V119.683H19.9404Z"/>
+          <path id="close-l2" d="M119.658 38.2383L119.237 146.463L99.0728 146.388L99.4261 55.5952L52.1294 55.4186L52.1972 37.9863L119.658 38.2383Z"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div data-sc-world-copy>
+
+    <div class="copy copy--hero" id="home" data-sc-copy data-sc-window="hero">
+      <h1 class="sc-display h-hero">Lucas Lima</h1>
+      <p class="role">Front-end and Automation Developer</p>
+      <p class="lede">Building high-performance digital solutions focused on automation, modern front-end, and scalable systems.</p>
+      <div class="actions">
+        <a class="cta cta--ghost" href="#projects" data-goto="3">View projects</a>
+      </div>
+    </div>
+
+    <section class="copy copy--services" id="services" data-sc-copy data-sc-window="0.155 0.268" aria-labelledby="services-h">
+      <h2 class="sc-display h-sec" id="services-h">What I do</h2>
+      <ol class="stops">
+        <li class="stop"><span class="stop__node" aria-hidden="true"></span>
+          <div><h3>AI Automations</h3><p>AI-powered flows with n8n and ManyChat.</p></div></li>
+        <li class="stop"><span class="stop__node" aria-hidden="true"></span>
+          <div><h3>Full Stack Development</h3><p>Modern, performance-focused applications.</p></div></li>
+        <li class="stop"><span class="stop__node" aria-hidden="true"></span>
+          <div><h3>Freelance Services</h3><p>Websites and automation for your business.</p></div></li>
+      </ol>
+    </section>
+
+    <div class="copy tools__head" id="tools" data-sc-copy data-sc-window="0.280 0.468 0.1 0.1">
+      <h2 class="sc-display h-sec" id="tools-h">Tools I use every day</h2>
+      <p>Keep scrolling: each tool rides the trace and the brand bracket closes around it.</p>
+    </div>
+    <section class="copy tools__label" data-sc-copy data-sc-window="0.280 0.468 0.1 0.1" aria-labelledby="tools-h">
+      <div>
+        <span class="tools__name" id="tool-name">React</span>
+        <span class="tools__use" id="tool-use"></span>
+        <span class="tools__count" id="tool-count" aria-hidden="true"></span>
+        <div class="tools__nav">
+          <button type="button" id="tool-prev" aria-label="Previous tool"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 3 5 8l5 5"/></svg></button>
+          <button type="button" id="tool-next" aria-label="Next tool"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m6 3 5 5-5 5"/></svg></button>
+        </div>
+      </div>
+      <ul class="sr-only" id="tool-list"></ul>
+    </section>
+
+    <article class="copy copy--p1" id="projects" data-sc-copy data-sc-window="0.477 0.586 0.2 0.2">
+      <div class="proj">
+        <div class="proj__head">
+          <img class="proj__icon" src="assets/icon_rise.svg" width="56" height="56" alt="">
+          <h3>Rise App</h3>
+        </div>
+        <p>Task and habit-tracking platform with streaks.</p>
+        <ul class="stack"><li>React</li><li>Node.js</li><li>Supabase</li></ul>
+        <a class="proj__link" href="https://risese.netlify.app/auth" target="_blank" rel="noopener">Explore project <span aria-hidden="true">→</span></a>
+      </div>
+    </article>
+
+    <article class="copy copy--p2" data-sc-copy data-sc-window="0.582 0.691 0.2 0.2">
+      <div class="proj">
+        <div class="proj__head"><h3>ChatAI</h3></div>
+        <p>AI-powered virtual assistant for automated support and ticket management.</p>
+        <ul class="stack"><li>OpenAI</li><li>Python</li><li>Supabase</li><li>n8n</li></ul>
+        <a class="proj__link" href="https://github.com/LucasLima0202" target="_blank" rel="noopener">View on GitHub <span aria-hidden="true">→</span></a>
+      </div>
+    </article>
+
+    <article class="copy copy--p3" data-sc-copy data-sc-window="0.686 0.795 0.2 0.2">
+      <div class="proj">
+        <div class="proj__head"><h3>Dashboard Controlnomy</h3></div>
+        <p>Metrics dashboard and financial spending analysis.</p>
+        <ul class="stack"><li>React</li><li>TypeScript</li><li>JavaScript</li></ul>
+        <a class="proj__link" href="https://github.com/LucasLima0202" target="_blank" rel="noopener">View on GitHub <span aria-hidden="true">→</span></a>
+      </div>
+    </article>
+
+    <section class="copy copy--about" id="about" data-sc-copy data-sc-window="0.805 0.886" aria-labelledby="about-h">
+      <h2 class="sc-display h-sec" id="about-h">About</h2>
+      <p class="about__role">I'm a front-end developer focused on modern interfaces and AI-powered automation.</p>
+      <p>I started programming through a technical course and I'm now pursuing a degree in Information Systems, growing through further training and hands-on market practice.</p>
+      <p>I have real-world freelance experience and have worked in high-performance environments, building results-driven solutions for companies.</p>
+    </section>
+
+    <h2 class="copy sc-display finale__h" id="contact" data-sc-copy data-sc-window="finale">Have a project in mind? Let's talk.</h2>
+    <div class="copy finale__cta" data-sc-copy data-sc-window="finale">
+      <a class="cta" href="https://br.linkedin.com/in/lucas-lima-cunha-824b25210" target="_blank" rel="noopener">Send a message</a>
+    </div>
+    <footer class="copy finale__foot" data-sc-copy data-sc-window="finale">
+        <span>© LL2C · Lucas Lima Cunha</span>
+        <span class="finale__links">
+          <a href="https://github.com/LucasLima0202" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://br.linkedin.com/in/lucas-lima-cunha-824b25210" target="_blank" rel="noopener">LinkedIn</a>
+        </span>
+    </footer>
+  </div>
+
+  <div data-sc-spacer aria-hidden="true"></div>
+</main>
+
+<!-- shared symbol halves -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <path id="sym-l1" d="M19.9404 119.683V11.457H40.1047V102.251H87.4018V119.683H19.9404Z"/>
+    <path id="sym-l2" d="M119.658 38.2383L119.237 146.463L99.0728 146.388L99.4261 55.5952L52.1294 55.4186L52.1972 37.9863L119.658 38.2383Z"/>
+  </defs>
+</svg>
+
+<script src="scrollcraft.js"></script>
+<script>
+(function () {
+  'use strict';
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var fine = matchMedia('(hover: hover) and (pointer: fine)');
+  var small = matchMedia('(max-width: 860px)');
+  var clamp = function (x, a, b) { return x < a ? a : x > b ? b : x; };
+  var c01 = function (x) { return clamp(x, 0, 1); };
+  var smooth = function (x) { x = c01(x); return x * x * (3 - 2 * x); };
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (s) { return document.querySelector(s); };
+
+  // Leg weights, mirrored from the markup so scroll position can be inverted
+  // for the map and the tool buttons.
+  var LEGS = Array.prototype.map.call(document.querySelectorAll('[data-sc-segment]'),
+    function (s) { return parseFloat(s.getAttribute('data-sc-w')); });
+  var TOTAL = LEGS.reduce(function (a, b) { return a + b; }, 0);
+  var C0 = []; LEGS.reduce(function (acc, w, i) { C0[i] = acc; return acc + w; }, 0);
+
+  // ------------------------------------------------------------ tools ----
+  // "use" lines name only what the portfolio content states, or plain category.
+  var TOOLS = [
+    ['React', 'react', 'Rise App and Dashboard Controlnomy'],
+    ['TypeScript', 'typescript', 'Dashboard Controlnomy'],
+    ['Node.js', 'nodedotjs', 'Rise App'],
+    ['Supabase', 'supabase', 'Rise App and ChatAI'],
+    ['n8n', 'n8n', 'Automation flows, including ChatAI'],
+    ['Python', 'python', 'ChatAI']
+  ];
+  var N = TOOLS.length;
+  var belt = $('#belt'), beltPath = $('#belt-path'), grip = $('#grip');
+  var gripL1 = $('#grip-l1'), gripL2 = $('#grip-l2');
+  var toolEls = TOOLS.map(function (t) {
+    var d = document.createElement('div');
+    d.className = 'tool';
+    if (t[1] === 'manychat') d.innerHTML = '<img src="assets/manychat.png" alt="" width="26" height="26">';
+    else if (t[1]) d.innerHTML = '<img src="assets/tools/' + t[1] + '.svg" alt="" width="26" height="26">';
+    else d.innerHTML = '<span class="tool__mono">AI</span>';
+    belt.insertBefore(d, grip);
+    return d;
+  });
+  var list = $('#tool-list');
+  TOOLS.forEach(function (t) { var li = document.createElement('li'); li.textContent = t[0] + ': ' + t[2]; list.appendChild(li); });
+  var nameEl = $('#tool-name'), useEl = $('#tool-use'), countEl = $('#tool-count'), labelEl = $('.tools__label > div');
+
+  // Belt geometry, in screen pixels: a 45° chamfered trace across the frame.
+  var beltLen = 0, focusS = 0, gap = 150, focus = { x: 0, y: 0 };
+  function layoutBelt() {
+    var W = innerWidth, H = innerHeight, mob = small.matches;
+    var y = mob ? H * 0.5 : H * 0.56, dy = mob ? 46 : 90, cx = W / 2;
+    var flat = mob ? W * 0.32 : W * 0.34;
+    var a = cx - flat / 2, b = cx + flat / 2;
+    var d = 'M' + (-60) + ' ' + (y - dy) +
+            ' H' + (a - dy) + ' L' + a + ' ' + y +
+            ' H' + b + ' L' + (b + dy) + ' ' + (y - dy) +
+            ' H' + (W + 60);
+    beltPath.setAttribute('d', d);
+    beltLen = beltPath.getTotalLength();
+    var lenToA = (a - dy + 60) + Math.SQRT2 * dy;
+    focusS = lenToA + flat / 2;
+    focus = beltPath.getPointAtLength(focusS);
+    gap = mob ? 92 : 150;
+    document.documentElement.style.setProperty('--focus-y', focus.y + 'px');
+    grip.style.left = focus.x + 'px'; grip.style.top = (focus.y - 6) + 'px';
+  }
+
+  // Scroll -> carousel index, with a hold at each tool so it settles.
+  function toolIndexFromT(t) {
+    var q = c01((t - C0[2]) / LEGS[2]);
+    var qq = c01((q - 0.06) / 0.88);
+    var raw = qq * (N - 1);
+    var i = Math.floor(raw), f = raw - i;
+    if (i >= N - 1) return N - 1;
+    var held = smooth((f - 0.28) / 0.44);
+    return i + held;
+  }
+  function scrollForTool(idx) {
+    idx = clamp(idx, 0, N - 1);
+    var q = 0.06 + 0.88 * (idx / (N - 1));
+    return (C0[2] + q * LEGS[2]) * innerHeight;
+  }
+
+  var k = 0, kTarget = 0, lastShown = -1;
+  function drawBelt() {
+    var mob = small.matches;
+    for (var j = 0; j < N; j++) {
+      var dist = j - k, ad = Math.abs(dist);
+      var s = focusS + dist * gap;
+      var el = toolEls[j];
+      if (s < -40 || s > beltLen + 40 || ad > 7) { el.style.opacity = '0'; continue; }
+      var p = beltPath.getPointAtLength(clamp(s, 0, beltLen));
+      var sc = 0.66 + 0.34 * c01(1 - ad);
+      var op = c01(1 - ad / (mob ? 3.2 : 5.2)) * (ad < 1 ? 1 : 0.78);
+      el.style.opacity = op.toFixed(3);
+      el.style.transform = 'translate3d(' + p.x.toFixed(1) + 'px,' + p.y.toFixed(1) + 'px,0) scale(' + sc.toFixed(3) + ')';
+    }
+    // The grip: closed (logo lockup) when a tool sits at the focus, open between.
+    var near = Math.round(k), off = Math.abs(k - near);
+    var lock = 1 - smooth(off / 0.5);
+    var open = (1 - lock) * 22;   // symbol units
+    gripL1.style.transform = 'translate(' + (-open) + 'px,' + (open) + 'px)';
+    gripL2.style.transform = 'translate(' + (open) + 'px,' + (-open) + 'px)';
+    if (near !== lastShown) {
+      lastShown = near;
+      nameEl.textContent = TOOLS[near][0];
+      useEl.textContent = TOOLS[near][2];
+      countEl.textContent = (near + 1) + ' of ' + N;
+    }
+    labelEl.style.opacity = (0.45 + 0.55 * lock).toFixed(3);
+  }
+  $('#tool-prev').addEventListener('click', function () { go(scrollForTool(Math.round(kTarget) - 1)); });
+  $('#tool-next').addEventListener('click', function () { go(scrollForTool(Math.round(kTarget) + 1)); });
+
+  // ------------------------------------------------------------ world ----
+  // One chamfered route through the whole page. Only H, V and 45° runs.
+  var ROUTE = [[0,0],[1100,0],[1500,400],[1500,1300],[1100,1700],[100,1700],[-300,2100],
+               [-300,3300],[100,3700],[1300,3700],[1700,4100],[1700,4800],[1300,5200],[500,5200]];
+  var minX = -900, minY = -700, maxX = 2500, maxY = 5900;
+  var WW = maxX - minX, WH = maxY - minY;
+  var route = $('#route'), far = $('#far');
+
+  var d = 'M' + ROUTE.map(function (p) { return p[0] + ' ' + p[1]; }).join(' L');
+  route.innerHTML =
+    '<defs><pattern id="dots" width="44" height="44" patternUnits="userSpaceOnUse">' +
+    '<circle cx="1" cy="1" r="1" fill="#BFD7EA" fill-opacity=".1"/></pattern></defs>' +
+    '<rect x="' + minX + '" y="' + minY + '" width="' + WW + '" height="' + WH + '" fill="url(#dots)"/>' +
+    '<path class="route-dim" d="' + d + '"/>' +
+    '<path class="route-lit" id="route-lit" d="' + d + '"/>' +
+    '<g id="route-nodes"></g>' +
+    '<rect class="route-head" id="route-head" width="9" height="9" x="-4.5" y="-4.5"/>';
+  var lit = $('#route-lit'), head = $('#route-head'), nodesG = $('#route-nodes');
+  var RL = lit.getTotalLength();
+  lit.style.strokeDasharray = RL + ' ' + RL;
+  var nodes = C0.map(function (c) {
+    var p = lit.getPointAtLength(RL * c / TOTAL);
+    var r = document.createElementNS(NS, 'rect');
+    r.setAttribute('class', 'route-node'); r.setAttribute('width', 11); r.setAttribute('height', 11);
+    r.setAttribute('x', p.x - 5.5); r.setAttribute('y', p.y - 5.5);
+    nodesG.appendChild(r); return r;
+  });
+  // Far plane: huge faint brackets scattered through the world, half speed.
+  var FAR = [[900,-300,1.0],[-500,900,1.5],[1900,1500,1.2],[-700,2700,1.1],[1500,3000,1.6],[-200,4300,1.3],[2100,4500,1.0],[600,5600,1.4]];
+  far.innerHTML = FAR.map(function (f) {
+    return '<g transform="translate(' + (f[0] * 0.5) + ' ' + (f[1] * 0.5) + ') scale(' + (f[2] * 3) + ')"><use href="#sym-l1"/><use href="#sym-l2"/></g>';
+  }).join('');
+
+  // ------------------------------------------------------------- hero ----
+  var heroL1 = $('#hero-l1'), heroL2 = $('#hero-l2');
+  var closeL1 = $('#close-l1'), closeL2 = $('#close-l2');
+  var planes = Array.prototype.slice.call(document.querySelectorAll('.plane'));
+  var ptr = { x: 0, y: 0, tx: 0, ty: 0 };
+  addEventListener('pointermove', function (e) {
+    if (!fine.matches || reduce) return;
+    ptr.tx = (e.clientX / innerWidth - 0.5); ptr.ty = (e.clientY / innerHeight - 0.5);
+  }, { passive: true });
+
+  // -------------------------------------------------------------- map ----
+  var mapLinks = Array.prototype.slice.call(document.querySelectorAll('.map a'));
+  var mapFill = $('.map__fill');
+  function go(y) { scrollTo({ top: y, behavior: reduce ? 'auto' : 'smooth' }); }
+  function yForLeg(i) {
+    if (i === 0) return 0;
+    if (i === LEGS.length - 1) return TOTAL * innerHeight;
+    if (i === 2) return scrollForTool(0);
+    if (i === 3) return (C0[3] + LEGS[3] * 0.18) * innerHeight; // first project at full strength
+    return (C0[i] + LEGS[i] * 0.4) * innerHeight;
+  }
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('[data-goto]');
+    if (!a) return;
+    e.preventDefault();
+    go(yForLeg(+a.getAttribute('data-goto')));
+  });
+  addEventListener('sc:waypoint', function (e) {
+    mapLinks.forEach(function (a, i) {
+      a.setAttribute('aria-current', String(i === e.detail.index));
+      a.classList.toggle('is-passed', i <= e.detail.index);
+    });
+  });
+  // Keyboard: a link inside a faded copy block brings its block into view.
+  document.addEventListener('focusin', function (e) {
+    var blk = e.target.closest('[data-sc-copy]');
+    if (!blk || parseFloat(blk.style.opacity || '0') > 0.5) return;
+    var w = blk.getAttribute('data-sc-window'), pr;
+    if (w === 'hero') pr = 0; else if (w === 'finale') pr = 1;
+    else { var n = w.split(/\s+/).map(parseFloat); pr = (n[0] + n[1]) / 2; }
+    scrollTo({ top: pr * TOTAL * innerHeight, behavior: 'auto' });
+  });
+
+  // ------------------------------------------------------------ frame ----
+  var cam = -1;
+  function frame() {
+    var vh = innerHeight;
+    var t = clamp(scrollY / vh, 0, TOTAL);
+    var target = t / TOTAL;
+    cam = cam < 0 || reduce ? target : cam + (target - cam) * 0.1;
+    var tc = cam * TOTAL;
+
+    // camera on the route
+    var p = lit.getPointAtLength(RL * cam);
+    var fx = innerWidth * (small.matches ? 0.5 : 0.46), fy = vh * 0.5;
+    var vw = innerWidth;
+    route.setAttribute('viewBox', (p.x - fx).toFixed(1) + ' ' + (p.y - fy).toFixed(1) + ' ' + vw + ' ' + vh);
+    far.setAttribute('viewBox', (p.x * 0.5 - fx).toFixed(1) + ' ' + (p.y * 0.5 - fy).toFixed(1) + ' ' + vw + ' ' + vh);
+    // the belt owns the frame during the peak; the world line steps back
+    var inTools = smooth((tc - C0[2] + 0.4) / 0.5) * (1 - smooth((tc - C0[3] + 0.1) / 0.5));
+    route.style.opacity = (1 - 0.8 * inTools).toFixed(3);
+    lit.style.strokeDashoffset = (RL * (1 - cam)).toFixed(1);
+    head.setAttribute('transform', 'translate(' + p.x.toFixed(1) + ' ' + p.y.toFixed(1) + ')');
+    for (var i = 0; i < nodes.length; i++) nodes[i].classList.toggle('is-passed', tc >= C0[i] - 0.01);
+    mapFill.style.transform = 'scaleY(' + cam.toFixed(4) + ')';
+
+    // hero: the two Ls part and the camera passes between them
+    ptr.x += (ptr.tx - ptr.x) * 0.08; ptr.y += (ptr.ty - ptr.y) * 0.08;
+    var hp = reduce ? 0 : smooth(tc / LEGS[0]);
+    var sep = hp * 46;
+    heroL1.style.transform = 'translate(' + (-sep) + 'px,' + (sep * 0.9) + 'px)';
+    heroL2.style.transform = 'translate(' + (sep) + 'px,' + (-sep * 0.9) + 'px)';
+    planes.forEach(function (pl) {
+      var dep = parseFloat(pl.getAttribute('data-depth'));
+      var sx = ptr.x * -28 * dep, sy = ptr.y * -18 * dep;
+      var rise = reduce ? 0 : -tc * vh * 0.22 * dep;
+      var sc = reduce ? 1 : 1 + hp * 0.5 * dep;
+      if (pl.classList.contains('plane--subject')) pl.style.opacity = reduce ? '1' : (1 - smooth((hp - 0.35) / 0.5)).toFixed(3);
+      pl.style.transform = 'translate3d(' + sx.toFixed(1) + 'px,' + (sy + rise).toFixed(1) + 'px,0) scale(' + sc.toFixed(3) + ')';
+    });
+
+    // tools
+    kTarget = toolIndexFromT(t);
+    if (reduce) kTarget = Math.round(kTarget);
+    k = reduce ? kTarget : k + (kTarget - k) * 0.16;
+    if (Math.abs(kTarget - k) < 0.0005) k = kTarget;
+    if (tc > C0[2] - 1.2 && tc < C0[3] + 1.2) drawBelt();
+
+    // finale: the symbol closes around the invitation
+    var fp = reduce ? 1 : smooth((tc - C0[5]) / (LEGS[5] * 0.75));
+    var o = (1 - fp) * 26;
+    closeL1.style.transform = 'translate(' + (-o) + 'px,' + (o) + 'px)';
+    closeL2.style.transform = 'translate(' + (o) + 'px,' + (-o) + 'px)';
+
+    requestAnimationFrame(frame);
+  }
+
+  function relayout() { layoutBelt(); dispatchEvent(new Event('resize')); }
+  addEventListener('resize', function () { layoutBelt(); });
+  layoutBelt();
+  ScrollCraft.mount(document);
+  addEventListener('load', relayout);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
