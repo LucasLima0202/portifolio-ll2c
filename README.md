@@ -24,7 +24,7 @@
 This is my portfolio. It shows what I do, the tools I use every day, and a few real projects.
 The main page is a single scroll journey drawn from the LL2C brand: a circuit line you follow from start to finish.
 
-<!-- TODO: add the live URL here, e.g. **Live:** https://... -->
+**Live:** https://ll2c.vercel.app/
 
 ## What you'll find
 
